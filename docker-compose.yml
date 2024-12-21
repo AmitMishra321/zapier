@@ -1,0 +1,10 @@
+services:
+  postgresdb:
+    image: postgres
+    container_name: zapier
+    environment:
+      POSTGRES_USER: zapier_user
+      POSTGRES_PASSWORD: mysecretpassword
+      POSTGRES_DB: zapier_db
+    ports:
+      - "5432:5432"
