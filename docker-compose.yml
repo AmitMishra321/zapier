@@ -1,10 +1,16 @@
 services:
   postgresdb:
     image: postgres
-    container_name: zapier
+    container_name: zapier_postgres
     environment:
       POSTGRES_USER: zapier_user
       POSTGRES_PASSWORD: mysecretpassword
       POSTGRES_DB: zapier_db
     ports:
       - "5432:5432"
+
+  kafka:
+    image: apache/kafka
+    container_name: zapier_kafka
+    ports:
+      - "9092:9092"
