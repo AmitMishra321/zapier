@@ -41,7 +41,7 @@ router.post("/signup", async (req, res) => {
 
     // await sendEmail()
 
-    res.json({
+    res.status(201).json({
       message: "Please verify your account by checking your email",
     });
   } catch (error: any) {
@@ -86,7 +86,7 @@ router.post("/signin", async (req, res) => {
         id: user.id
     }, JWT_PASSWORD)
 
-    res.json({
+    res.status(200).json({
         token
     })
   } catch (error: any) {
@@ -113,7 +113,7 @@ router.get("/", authMiddleware, async (req: Request, res: Response) => {
   
       const user = await prisma.user.findFirst({
         where: {
-          id: Number(id), 
+          id: parseInt(id), 
         },
         select: {
           name: true,
@@ -128,7 +128,7 @@ router.get("/", authMiddleware, async (req: Request, res: Response) => {
         return;
       }
   
-      res.json({
+      res.status(200).json({
         user,
       });
     } catch (error: any) {
