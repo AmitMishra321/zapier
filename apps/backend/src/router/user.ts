@@ -11,7 +11,6 @@ router.post("/signup", async (req, res) => {
   try {
     const body = req.body;
     const parsedData = SignupSchema.safeParse(body);
-
     if (!parsedData.success) {
       console.log(parsedData.error);
       res.status(401).json({
@@ -19,13 +18,12 @@ router.post("/signup", async (req, res) => {
       });
       return;
     }
-
     const userExists = await prisma.user.findFirst({
       where: {
         email: parsedData.data.username,
       },
     });
-
+    
     if (userExists) {
       res.status(403).json({
         message: "User already exists",
@@ -99,7 +97,9 @@ router.post("/signin", async (req, res) => {
     });
   }
 });
+
 /* ------------ / (Getting User) -------------- */
+
 router.get("/", authMiddleware, async (req: Request, res: Response) => {
     try {
       const id = req.id;
