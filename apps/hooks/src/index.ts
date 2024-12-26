@@ -1,6 +1,5 @@
 import express from "express";
 const app = express();
-const PORT = 3003;
 import prisma from "@repo/db/client";
 
 app.use(express.json());
@@ -26,11 +25,12 @@ app.post("/hooks/catch/:userId/:zapId", async (req, res) => {
       },
     });
     res.json({
-        message: "Webhook received"
+      message: "Webhook received"
     })
   });
 });
 
+const PORT = 3003;
 app.listen(PORT, () => {
   console.log(`server is running on ${PORT}`);
 });

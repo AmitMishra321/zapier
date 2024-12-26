@@ -7,24 +7,15 @@ export function authMiddleware(
   res: Response,
   next: NextFunction
 ) {
-  const authToken = req.headers.authorization;
-
-  if (!authToken || !authToken.startsWith("Bearer ")) {
+  const token = req.headers.authorization;
+  if (!token) {
     res.status(401).json({
-      message: "Authorization token is missing or improperly formatted.",
+      message: "Authorization token is missing",
     });
     return;
   }
 
-  const token = authToken.split(" ")[1];
-
   try {
-    if (!token) {
-      res.status(401).json({
-        message: "Authorization token is missing",
-      });
-      return;
-    }
     const payload = jwt.verify(token, JWT_PASSWORD);
     if (typeof payload === "object" && payload !== null && "id" in payload) {
       req.id = payload.id;
