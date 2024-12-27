@@ -13,6 +13,7 @@
   "dependencies": {
     "@repo/db": "workspace:*",
     "@repo/ui": "workspace:*",
+    "@xyflow/react": "^12.3.6",
     "axios": "^1.7.9",
     "next": "^15.1.0",
     "react": "^19.0.0",
