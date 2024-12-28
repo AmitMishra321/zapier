@@ -8,9 +8,23 @@ services:
       POSTGRES_DB: zapier_db
     ports:
       - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - zapier_network
 
   kafka:
     image: apache/kafka
     container_name: zapier_kafka
     ports:
       - "9092:9092"
+    networks:
+      - zapier_network
+
+volumes:
+  postgres_data:
+
+
+networks:
+  zapier_network:
+    driver: bridge
