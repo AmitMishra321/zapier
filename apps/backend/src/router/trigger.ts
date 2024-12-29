@@ -6,10 +6,10 @@ const router: Router = express.Router();
 
 router.get("/available", authMiddleware, async (req, res) => {
   try {
-    const availableTrigger = await prisma.availableTrigger.findMany({})
+    const availableTriggers = await prisma.availableTrigger.findMany({})
      
     res.status(200).json({
-      availableTrigger
+      availableTriggers
     });
   } catch (error: any) {
     console.error("Server Error:", error);

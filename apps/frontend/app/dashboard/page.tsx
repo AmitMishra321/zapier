@@ -113,15 +113,15 @@ function ZapTable({ zaps }: { zaps: Zap[] }) {
                 className="border-t hover:bg-gray-50 transition duration-200"
               >
                 <td className="p-4 text-center">
-                  <div className="flex items-center justify-center space-x-2">
+                  <div className="flex items-center justify-center gap-1 flex-wrap">
                   {z.trigger.type.image ? (
                     <img
                       src={z.trigger.type.image}
                       alt="Trigger Icon"
-                      className="w-8 h-8 rounded"
+                      className="w-8 h-8 rounded border-2"
                     />
                   ) : (
-                    <div className="w-8 h-8 bg-gray-200 flex items-center justify-center rounded">
+                    <div className="w-8 h-8 bg-gray-200 flex items-center justify-center rounded border-2">
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         fill="none"
@@ -145,12 +145,12 @@ function ZapTable({ zaps }: { zaps: Zap[] }) {
                         key={idx}
                         src={x.type.image}
                         alt="Action Icon"
-                        className="w-8 h-8 rounded"
+                        className="w-8 h-8 rounded border-2"
                       />
                     ) : (
                       <div
                         key={idx}
-                        className="w-8 h-8 bg-gray-200 flex items-center justify-center rounded"
+                        className="w-8 h-8 bg-gray-200 flex items-center justify-center rounded border-2"
                       >
                         🎬
                       </div>
@@ -158,10 +158,12 @@ function ZapTable({ zaps }: { zaps: Zap[] }) {
                   )}
                   </div>
                 </td>
-                <td className="p-4">{z.id}</td>
-                <td className="p-4 text-nowrap">Nov 13, 2023</td>
-                <td className="p-4">
-                  <div className="text-wrap">{`${HOOKS_URL}/hooks/catch/${z.userId}/${z.id}`}</div>
+                <td className="p-4 text-center">
+                  <div className="text-wrap max-w-[200px]">{z.id}</div>
+                </td>
+                <td className="p-4 text-nowrap text-center">Nov 13, 2023</td>
+                <td className="p-4 w-1/3">
+                  <div className="text-wrap text-center">{`${HOOKS_URL}/hooks/catch/${z.userId}/${z.id}`}</div>
                 </td>
                 <td className="p-2 text-center">
                   <LinkButton
