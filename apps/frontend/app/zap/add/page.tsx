@@ -30,21 +30,13 @@ import "@xyflow/react/dist/style.css";
 import { ZapCell } from "../../../components/ZapCell";
 
 export type AppNode = BuiltInNode | Node;
-
 export const initialNodes: AppNode[] = [];
 
 export const nodeTypes: NodeTypes = {
   custom: CustomNode,
 } satisfies NodeTypes;
 
-export type RFState = {
-  nodes: Node[];
-  edges: Edge[];
-  onNodesChange: OnNodesChange;
-  onEdgesChange: OnEdgesChange;
-};
-
-export const initialEdges = [] satisfies Edge[];
+export const initialEdges:Edge[] = [];
 export const edgeTypes = {
   // Add your custom edge types here!
 } satisfies EdgeTypes;
@@ -128,7 +120,6 @@ const WorkflowPage: React.FC = () => {
     ];
 
     setNodes([triggerNode, ...actionNodes, addActionButtonNode]);
-    //@ts-ignore
     setEdges([...newEdges, ...addBtnEdges]);
   };
 
