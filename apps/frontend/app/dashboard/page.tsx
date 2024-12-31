@@ -161,7 +161,7 @@ function ZapTable({ zaps }: { zaps: Zap[] }) {
                 <td className="p-4 text-center">
                   <div className="text-wrap max-w-[200px]">{z.id}</div>
                 </td>
-                <td className="p-4 text-nowrap text-center">Nov 13, 2023</td>
+                <td className="p-4 text-nowrap text-center">JAN 01, 2025</td>
                 <td className="p-4 w-1/3">
                   <div className="text-wrap text-center">{`${HOOKS_URL}/hooks/catch/${z.userId}/${z.id}`}</div>
                 </td>
