@@ -12,14 +12,14 @@ async function Main() {
   await producer.connect();
 
   while (1) {
-    const pendingRow = await prisma.zapRunOutbox.findMany({
+    const pendingRows = await prisma.zapRunOutbox.findMany({
       where: {},
       take: 10,
     });
-
+    console.log(pendingRows);
     producer.send({
       topic: TOPIC_NAME,
-      messages: pendingRow.map((r) => ({
+      messages: pendingRows.map((r) => ({
         value: JSON.stringify({ zapRunId: r.zapRunId, stage: 0 }),
       })),
     });
@@ -27,10 +27,11 @@ async function Main() {
     await prisma.zapRunOutbox.deleteMany({
         where:{
             id:{
-                in: pendingRow.map(x => x.id)
+                in: pendingRows.map(x => x.id)
             }
         }
     })
+    await new Promise(r => setTimeout(r, 10000));
   }
 }
 
