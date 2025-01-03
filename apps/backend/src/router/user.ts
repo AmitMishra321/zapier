@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import express, { Request, Response, Router } from "express";
 const router: Router = express.Router();
 import { SigninSchema, SignupSchema } from "../types";
@@ -5,6 +6,7 @@ import prisma from "@repo/db/client";
 import jwt from "jsonwebtoken";
 import { JWT_PASSWORD } from "../config";
 import { authMiddleware } from "../middleware";
+import { loginUser, signUpUser, verifyEmail } from "../utils/auth";
 
 
 router.post("/signup", async (req, res) => {
@@ -18,31 +20,25 @@ router.post("/signup", async (req, res) => {
       });
       return;
     }
+
+    const { name, password, username: email } = parsedData.data;
+
     const userExists = await prisma.user.findFirst({
       where: {
-        email: parsedData.data.username,
+        email,
       },
     });
-    
+
     if (userExists) {
       res.status(403).json({
         message: "User already exists",
       });
       return;
     }
-
-    await prisma.user.create({
-      data: {
-        email: parsedData.data.username,
-        password: parsedData.data.password, // TODO: hash password
-        name: parsedData.data.name,
-      },
-    });
-
-    // await sendEmail()
+    const response = await signUpUser(email, name, password);
 
     res.status(201).json({
-      message: "Please verify your account by checking your email",
+      message: response.message,
     });
   } catch (error: any) {
     console.error("Server Error:", error);
@@ -52,6 +48,18 @@ router.post("/signup", async (req, res) => {
     });
   }
 });
+
+router.get("/verify-email", async (req, res) => {
+  const { token } = req.query;
+
+  try {
+    const response = await verifyEmail(token as string);
+    res.json(response);
+  } catch (error: any) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
 
 /* ------------ SignIn -------------- */
 
@@ -61,34 +69,114 @@ router.post("/signin", async (req, res) => {
     const parsedData = SigninSchema.safeParse(body);
 
     if (!parsedData.success) {
-      console.log(parsedData.error);
-      res.status(401).json({
-        messages: "Wrong Input",
+      console.log("Validation Error:", parsedData.error);
+      res.status(400).json({
+        message: "Invalid input data."
+      });
+      return;
+    }
+
+    const { password, username: email } = parsedData.data;
+
+    // Try logging in the user
+    const response = await loginUser(email, password);
+
+    // Generate JWT token
+    const token = jwt.sign(
+      { id: response.user.id },
+      JWT_PASSWORD,
+      // { expiresIn: "1h" } // Token expires in 1 hour
+    );
+
+    res.status(200).json({
+      msg: response.message,
+      token,
+    });
+  } catch (error: any) {
+    console.error("Error in /signin:", error);
+
+    if (error.statusCode) {
+      // If the error has a statusCode, send it
+      res.status(error.statusCode).json({ message: error.message });
+      return;
+    }
+
+    // Fallback for unexpected errors
+    res.status(500).json({
+      message: "An unexpected error occurred. Please try again later.",
+    });
+    return;
+  }
+});
+// router.post("/signin", async (req, res) => {
+//   try {
+//     const body = req.body;
+//     const parsedData = SigninSchema.safeParse(body);
+
+//     if (!parsedData.success) {
+//       console.log(parsedData.error);
+//       res.status(401).json({
+//         messages: "Wrong Input",
+//       });
+//       return;
+//     }
+
+//     const { password, username: email } = parsedData.data;
+
+//     const response = await loginUser(email, password);
+
+//     const token = jwt.sign(
+//       {
+//         id: response.user.id,
+//       },
+//       JWT_PASSWORD
+//     );
+
+//     res.status(200).json({
+//       token,
+//     });
+//   } catch (error: any) {
+//     console.error("Server Error:", error);
+
+//     res.status(500).json({
+//       message: "An unexpected error occurred. Please try again later.",
+//     });
+//   }
+// });
+
+/* ------------ / (Getting User) -------------- */
+
+router.get("/", authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const id = req.id;
+
+    if (!id || isNaN(Number(id))) {
+      res.status(403).json({
+        message: "Unauthorized or invalid user ID",
       });
       return;
     }
 
     const user = await prisma.user.findFirst({
       where: {
-        email: parsedData.data.username,
-        password: parsedData.data.password,
+        id: parseInt(id),
+      },
+      select: {
+        name: true,
+        email: true,
       },
     });
 
     if (!user) {
-      res.status(403).json({
-        message: "Sorry credentials are incorrect",
+      res.status(404).json({
+        message: "User not found",
       });
       return;
     }
 
-    const token = jwt.sign({
-        id: user.id
-    }, JWT_PASSWORD)
-
     res.status(200).json({
-        token
-    })
+      user,
+    });
   } catch (error: any) {
     console.error("Server Error:", error);
 
@@ -97,48 +185,5 @@ router.post("/signin", async (req, res) => {
     });
   }
 });
-
-/* ------------ / (Getting User) -------------- */
-
-router.get("/", authMiddleware, async (req: Request, res: Response) => {
-    try {
-      const id = req.id;
-  
-      if (!id || isNaN(Number(id))) {
-        res.status(403).json({
-          message: "Unauthorized or invalid user ID",
-        });
-        return;
-      }
-  
-      const user = await prisma.user.findFirst({
-        where: {
-          id: parseInt(id), 
-        },
-        select: {
-          name: true,
-          email: true,
-        },
-      });
-  
-      if (!user) {
-        res.status(404).json({
-          message: "User not found",
-        });
-        return;
-      }
-  
-      res.status(200).json({
-        user,
-      });
-    } catch (error: any) {
-      console.error("Server Error:", error);
-  
-      res.status(500).json({
-        message: "An unexpected error occurred. Please try again later.",
-      });
-    }
-  });
-  
 
 export default router;

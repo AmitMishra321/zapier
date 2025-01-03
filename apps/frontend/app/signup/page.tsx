@@ -49,7 +49,8 @@ export default function() {
                                 password,
                                 name
                             });
-                            router.push("/login");
+                            // router.push("/signup/verify");
+                            alert(`${"Please check your email to verify your account. Didn't receive an email? [Resend Verification Email]"}`)
                         }} size="big">Get started free</PrimaryButton>
                     </div>
                 </div>
