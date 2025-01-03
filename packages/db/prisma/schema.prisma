@@ -13,13 +13,22 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
 model User {
-  id       Int    @id @default(autoincrement())
-  email    String @unique
-  name     String
-  password String
-  zaps     Zap[]
+  id                 Int                 @id @default(autoincrement())
+  email              String              @unique
+  name               String
+  password           String
+  zaps               Zap[]
+  verified           Boolean             @default(false)
+  verificationTokens VerificationToken[]
+}
+
+model VerificationToken {
+  id        Int      @id @default(autoincrement())
+  token     String   @unique
+  expiresAt DateTime
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Zap {
