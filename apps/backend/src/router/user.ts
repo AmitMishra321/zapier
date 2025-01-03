@@ -78,14 +78,11 @@ router.post("/signin", async (req, res) => {
 
     const { password, username: email } = parsedData.data;
 
-    // Try logging in the user
     const response = await loginUser(email, password);
 
-    // Generate JWT token
     const token = jwt.sign(
       { id: response.user.id },
       JWT_PASSWORD,
-      // { expiresIn: "1h" } // Token expires in 1 hour
     );
 
     res.status(200).json({
@@ -108,41 +105,7 @@ router.post("/signin", async (req, res) => {
     return;
   }
 });
-// router.post("/signin", async (req, res) => {
-//   try {
-//     const body = req.body;
-//     const parsedData = SigninSchema.safeParse(body);
 
-//     if (!parsedData.success) {
-//       console.log(parsedData.error);
-//       res.status(401).json({
-//         messages: "Wrong Input",
-//       });
-//       return;
-//     }
-
-//     const { password, username: email } = parsedData.data;
-
-//     const response = await loginUser(email, password);
-
-//     const token = jwt.sign(
-//       {
-//         id: response.user.id,
-//       },
-//       JWT_PASSWORD
-//     );
-
-//     res.status(200).json({
-//       token,
-//     });
-//   } catch (error: any) {
-//     console.error("Server Error:", error);
-
-//     res.status(500).json({
-//       message: "An unexpected error occurred. Please try again later.",
-//     });
-//   }
-// });
 
 /* ------------ / (Getting User) -------------- */
 

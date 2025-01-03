@@ -98,29 +98,3 @@ export async function loginUser(email: string, password: string) {
   }
 }
 
-
-
-// export async function loginUser(email: string, password: string) {
-//   const hashedPassword = crypto
-//     .createHash("sha256")
-//     .update(password)
-//     .digest("hex");
-
-//   const user = await prisma.user.findUnique({
-//     where: { email },
-//   });
-//   if (!user) {
-//     throw new Error("User does not Exist");
-//   }
-//   if (user.password !== hashedPassword) {
-//     throw new Error("Invalid email or password.");
-//   }
-
-//   if (!user.verified) {
-//     throw new Error(
-//       "Email not verified. Please verify your email before logging in."
-//     );
-//   }
-
-//   return { message: "Login successful.", user };
-// }
