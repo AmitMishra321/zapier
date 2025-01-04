@@ -33,7 +33,7 @@ export async function signUpUser(
     },
   });
 
-  const verificationUrl = `${process.env.APP_URL}/signup/verify?token=${token}`;
+  const verificationUrl = `${process.env.APP_URL}/signup/verify?id=${user.id}&token=${token}`;
   await sendEmail(email, verificationUrl);
 
   return { message: "Verification email sent." };
@@ -61,6 +61,31 @@ export async function verifyEmail(token: string) {
   return { verified: res.verified, message: "Email verified successfully." };
 }
 
+export type UserTypes = {
+  id: number;
+  email: string;
+  name: string;
+  password: string;
+  verified: boolean;
+}
+export async function ResendEmail (user: UserTypes) {
+  
+  const token = crypto.randomBytes(32).toString("hex");
+  const expiresAt = addMinutes(new Date(), 15); // Token valid for 15 minutes
+
+  await prisma.verificationToken.create({
+    data: {
+      userId: user.id,
+      token,
+      expiresAt,
+    },
+  });
+
+  const verificationUrl = `${process.env.APP_URL}/signup/verify?id=${user.id}&token=${token}`;
+  await sendEmail(user.email, verificationUrl);
+
+  return { message: "Verification email sent." };
+}
 
 export async function loginUser(email: string, password: string) {
   const hashedPassword = crypto.createHash("sha256").update(password).digest("hex");

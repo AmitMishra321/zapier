@@ -1,12 +1,13 @@
 "use client";
+import axios from "axios";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { toast } from "react-toastify";
 import { Appbar } from "../../components/Appbar";
 import { CheckFeature } from "../../components/CheckFeature";
 import { Input } from "../../components/Input";
 import { PrimaryButton } from "../../components/buttons/PrimaryButton";
-import axios from "axios";
-import { useState } from "react";
 import { BACKEND_URL } from "../config";
-import { useRouter } from "next/navigation";
 
 export default function() {
     const router = useRouter();
@@ -14,6 +15,16 @@ export default function() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
 
+    const handleSignup = async () => {
+        try {
+            await axios.post(`${BACKEND_URL}/api/v1/user/signup`, { name, username:email, password });
+            toast.success("Please check your email to verify your account.");
+        } catch (error) {
+            console.error("Signup failed:", error);
+            toast.error("Failed to sign up. Please try again.");
+        }
+    };
+  
     return <div> 
         <Appbar />
         <div className="flex justify-center">
@@ -43,15 +54,7 @@ export default function() {
                     }} label={"Password"} type="password" placeholder="Password"></Input>
 
                     <div className="pt-4">
-                        <PrimaryButton onClick={async () => {
-                            const res = await axios.post(`${BACKEND_URL}/api/v1/user/signup`, {
-                                username: email,
-                                password,
-                                name
-                            });
-                            // router.push("/signup/verify");
-                            alert(`${"Please check your email to verify your account. Didn't receive an email? [Resend Verification Email]"}`)
-                        }} size="big">Get started free</PrimaryButton>
+                        <PrimaryButton onClick={handleSignup} size="big">Get started free</PrimaryButton>
                     </div>
                 </div>
             </div>

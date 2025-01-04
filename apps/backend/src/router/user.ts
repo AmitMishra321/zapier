@@ -6,7 +6,7 @@ import prisma from "@repo/db/client";
 import jwt from "jsonwebtoken";
 import { JWT_PASSWORD } from "../config";
 import { authMiddleware } from "../middleware";
-import { loginUser, signUpUser, verifyEmail } from "../utils/auth";
+import { loginUser, ResendEmail, signUpUser, verifyEmail ,UserTypes } from "../utils/auth";
 
 
 router.post("/signup", async (req, res) => {
@@ -50,10 +50,35 @@ router.post("/signup", async (req, res) => {
 });
 
 router.get("/verify-email", async (req, res) => {
-  const { token } = req.query;
-
+  const { token , id} = req.query;
   try {
+    const user = await prisma.user.findUnique({
+      where: {
+        id: Number(id),
+      }
+    })
+    if(user?.verified){
+      const error = new Error("User does not exist.");
+      (error as any).statusCode = 404;
+      throw error;
+    }
     const response = await verifyEmail(token as string);
+    res.json(response);
+  } catch (error: any) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+router.get("/resend-email-verification", async (req, res) => {
+
+  const {id} = req.query;
+  try {
+    const user = await prisma.user.findUnique({
+      where: {
+        id: Number(id),
+      }
+    })
+    const response = await ResendEmail(user as UserTypes)
     res.json(response);
   } catch (error: any) {
     res.status(400).json({ error: error.message });

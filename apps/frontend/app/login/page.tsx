@@ -7,6 +7,7 @@ import axios from "axios";
 import { useState } from "react";
 import { BACKEND_URL } from "../config";
 import { useRouter } from "next/navigation";
+import { toast } from "react-toastify";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -28,11 +29,13 @@ export default function LoginPage() {
         localStorage.setItem("token", res.data.token);
         router.push("/dashboard");
       }
-    } catch (error) {
+    } catch (error:any) {
       if (axios.isAxiosError(error) && error.response) {
         setVerifyMsg(error.response.data.message || "Login failed.");
+        toast.error(error.response.data.message)
       } else {
         setVerifyMsg("An unexpected error occurred. Please try again.");
+        toast.error(error.response.data.message)
       }
     } finally {
       setIsLoading(false); // Reset loading state
@@ -42,9 +45,9 @@ export default function LoginPage() {
   return (
     <div>
       <Appbar />
-      {verifyMsg && (
+      {/* {verifyMsg && (
         <div className="pt-4 flex justify-center text-red-500">{verifyMsg}</div>
-      )}
+      )} */}
       <div className="flex justify-center">
         <div className="flex pt-8 max-w-4xl">
           <div className="flex-1 pt-16 px-4">
