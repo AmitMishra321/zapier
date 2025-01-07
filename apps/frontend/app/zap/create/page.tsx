@@ -1,13 +1,13 @@
 "use client";
 import { useEffect, useState } from "react";
-import { Appbar } from "../../../components/Appbar";
-import { ZapCell } from "../../../components/ZapCell";
-import { SecondaryButton } from "../../../components/buttons/SecondaryButton";
+import { Appbar } from "@/components/Appbar";
+import { ZapCell } from "@/components/ZapCell";
+import { SecondaryButton } from "@/components/buttons/SecondaryButton";
 import axios from "axios";
-import { BACKEND_URL } from "../../config";
+import { BACKEND_URL } from "@/app/config";
 import { useRouter } from "next/navigation";
-import { DarkButton } from "../../../components/buttons/DarkButton";
-import { Input } from "../../../components/Input";
+import { DarkButton } from "@/components/buttons/DarkButton";
+import { Input } from "@/components/Input";
 
 type EndPoint = "trigger" | "action";
 

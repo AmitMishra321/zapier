@@ -1,8 +1,8 @@
 "use client";
-import { Appbar } from "../../components/Appbar";
-import { CheckFeature } from "../../components/CheckFeature";
-import { Input } from "../../components/Input";
-import { PrimaryButton } from "../../components/buttons/PrimaryButton";
+import { Appbar } from "@/components/Appbar";
+import { CheckFeature } from "@/components/CheckFeature";
+import { Input } from "@/components/Input";
+import { PrimaryButton } from "@/components/buttons/PrimaryButton";
 import axios from "axios";
 import { useState } from "react";
 import { BACKEND_URL } from "../config";
@@ -30,12 +30,11 @@ export default function LoginPage() {
         router.push("/dashboard");
       }
     } catch (error:any) {
+      toast.error(error.response.data.message)
       if (axios.isAxiosError(error) && error.response) {
         setVerifyMsg(error.response.data.message || "Login failed.");
-        toast.error(error.response.data.message)
       } else {
         setVerifyMsg("An unexpected error occurred. Please try again.");
-        toast.error(error.response.data.message)
       }
     } finally {
       setIsLoading(false); // Reset loading state

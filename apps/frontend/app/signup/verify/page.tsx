@@ -2,9 +2,9 @@
 import axios from "axios";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Appbar } from "../../../components/Appbar";
-import { PrimaryButton } from "../../../components/buttons/PrimaryButton";
-import { BACKEND_URL } from "../../config";
+import { Appbar } from "@/components/Appbar";
+import { PrimaryButton } from "@/components/buttons/PrimaryButton";
+import { BACKEND_URL } from "@/app/config";
 import { toast } from "react-toastify";
 
 export default function VerifyEmail() {

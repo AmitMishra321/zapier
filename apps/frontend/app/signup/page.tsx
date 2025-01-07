@@ -3,11 +3,11 @@ import axios from "axios";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "react-toastify";
-import { Appbar } from "../../components/Appbar";
-import { CheckFeature } from "../../components/CheckFeature";
-import { Input } from "../../components/Input";
-import { PrimaryButton } from "../../components/buttons/PrimaryButton";
-import { BACKEND_URL } from "../config";
+import { Appbar } from "@/components/Appbar";
+import { CheckFeature } from "@/components/CheckFeature";
+import { Input } from "@/components/Input";
+import { PrimaryButton } from "@/components/buttons/PrimaryButton";
+import { BACKEND_URL } from "@/app/config";
 
 export default function() {
     const router = useRouter();

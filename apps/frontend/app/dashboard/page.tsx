@@ -1,10 +1,10 @@
 "use client";
-import { Appbar } from "../../components/Appbar";
-import { DarkButton } from "../../components/buttons/DarkButton";
+import { Appbar } from "@/components/Appbar";
+import { DarkButton } from "@/components/buttons/DarkButton";
 import axios from "axios";
 import { useEffect, useState } from "react";
-import { BACKEND_URL, HOOKS_URL } from "../config";
-import { LinkButton } from "../../components/buttons/LinkButton";
+import { BACKEND_URL, HOOKS_URL } from "@/app/config";
+import { LinkButton } from "@/components/buttons/LinkButton";
 import { useRouter } from "next/navigation";
 
 interface Zap {
