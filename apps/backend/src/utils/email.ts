@@ -11,12 +11,12 @@ const transport = nodemailer.createTransport({
   },
 });
 
-export async function sendEmail(to: string, verificationUrl: string) {
+export async function sendEmail(to: string, sub:string, text: string) {
   const mailOptions = {
     from: `"Deepak's Zapier" < ${process.env.SMTP_EMAIL} >`,
     to,
-    subject: "Signup Verification from Deepak's Zapier",
-    text: `Verify your email by clicking here: ${verificationUrl}`,
+    subject: `${sub} from Deepak's Zapier`,
+    text,
   };
 
   // Send the email

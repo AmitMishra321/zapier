@@ -74,7 +74,10 @@ export default function LoginPage() {
               type="password"
               placeholder="Password"
             />
-            <div className="pt-4">
+            <div className="cursor-pointer select-none text-sky-700 flex justify-end">
+                <p onClick={()=> router.push("/forget")}>forget password ?</p>
+            </div>
+            <div className="pt-6">
               <PrimaryButton
                 onClick={handleLoginBtn}
                 size="big"

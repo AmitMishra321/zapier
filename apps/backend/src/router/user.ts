@@ -1,13 +1,20 @@
-import 'dotenv/config';
+import "dotenv/config";
 import express, { Request, Response, Router } from "express";
 const router: Router = express.Router();
-import { SigninSchema, SignupSchema } from "../types";
+import { EmailSchema, ForgetPasswordSchema, SigninSchema, SignupSchema } from "../types";
 import prisma from "@repo/db/client";
 import jwt from "jsonwebtoken";
 import { JWT_PASSWORD } from "../config";
 import { authMiddleware } from "../middleware";
-import { loginUser, ResendEmail, signUpUser, verifyEmail ,UserTypes } from "../utils/auth";
-
+import {
+  loginUser,
+  ResendEmail,
+  signUpUser,
+  verifyEmail,
+  UserTypes,
+  ForgetPassword,
+  VerifyForgetPassword,
+} from "../utils/auth";
 
 router.post("/signup", async (req, res) => {
   try {
@@ -49,15 +56,17 @@ router.post("/signup", async (req, res) => {
   }
 });
 
+/* ------------ Verify Email -------------- */
+
 router.get("/verify-email", async (req, res) => {
-  const { token , id} = req.query;
+  const { token, id } = req.query;
   try {
     const user = await prisma.user.findUnique({
       where: {
         id: Number(id),
-      }
-    })
-    if(user?.verified){
+      },
+    });
+    if (!user?.id) {
       const error = new Error("User does not exist.");
       (error as any).statusCode = 404;
       throw error;
@@ -69,22 +78,86 @@ router.get("/verify-email", async (req, res) => {
   }
 });
 
-router.get("/resend-email-verification", async (req, res) => {
+/* ------------ Resend Email Verification -------------- */
 
-  const {id} = req.query;
+router.get("/resend-email-verification", async (req, res) => {
+  const { id } = req.query;
   try {
     const user = await prisma.user.findUnique({
       where: {
         id: Number(id),
-      }
-    })
-    const response = await ResendEmail(user as UserTypes)
+      },
+    });
+    const response = await ResendEmail(user as UserTypes);
     res.json(response);
   } catch (error: any) {
     res.status(400).json({ error: error.message });
   }
 });
 
+/* ------------ Forget Password -------------- */
+
+router.post("/forget", async (req, res) => {
+  try {
+    const body = req.body;
+    const parsedData = EmailSchema.safeParse(body);
+
+    if (!parsedData.success) {
+      console.log("Validation Error:", parsedData.error);
+      res.status(400).json({
+        message: "Invalid input data.",
+      });
+      return;
+    }
+
+    const { username: email } = parsedData.data;
+    const user = await prisma.user.findUnique({
+      where: {
+        email,
+      },
+    });
+    const response = await ForgetPassword(user as UserTypes);
+    res.json(response);
+  } catch (error: any) {
+    res.status(400).json({ error: error.message });
+  }
+});
+/* ------------ Reset Forget Password -------------- */
+
+router.post("/reset-password", async (req, res) => {
+  try {
+    const body = req.body;
+    const parsedData = ForgetPasswordSchema.safeParse(body);
+
+    if (!parsedData.success) {
+      console.log("Validation Error:", parsedData.error);
+      res.status(400).json({
+        message: "Invalid input data.",
+      });
+      return;
+    }
+
+    const { token, id, password } = parsedData.data;
+    const user = await prisma.user.findUnique({
+      where: {
+        id: Number(id as string),
+      },
+    });
+
+    if (!user?.id) {
+      const error = new Error("User does not exist.");
+      (error as any).statusCode = 404;
+      throw error;
+    }
+    const response = await VerifyForgetPassword(
+      token as string,
+      password as string
+    );
+    res.json(response);
+  } catch (error: any) {
+    res.status(400).json({ error: error.message });
+  }
+});
 
 /* ------------ SignIn -------------- */
 
@@ -96,7 +169,7 @@ router.post("/signin", async (req, res) => {
     if (!parsedData.success) {
       console.log("Validation Error:", parsedData.error);
       res.status(400).json({
-        message: "Invalid input data."
+        message: "Invalid input data.",
       });
       return;
     }
@@ -105,10 +178,7 @@ router.post("/signin", async (req, res) => {
 
     const response = await loginUser(email, password);
 
-    const token = jwt.sign(
-      { id: response.user.id },
-      JWT_PASSWORD,
-    );
+    const token = jwt.sign({ id: response.user.id }, JWT_PASSWORD);
 
     res.status(200).json({
       msg: response.message,
@@ -130,7 +200,6 @@ router.post("/signin", async (req, res) => {
     return;
   }
 });
-
 
 /* ------------ / (Getting User) -------------- */
 

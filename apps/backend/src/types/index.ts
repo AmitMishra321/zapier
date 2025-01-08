@@ -11,6 +11,15 @@ export const SigninSchema = z.object({
     password: z.string()
 });
 
+export const EmailSchema = z.object({
+    username: z.string().min(5)
+});
+
+export const ForgetPasswordSchema = z.object({
+    token: z.string(),
+    id: z.string(),
+    password: z.string(),
+  });
 export const ZapCreateSchema = z.object({
     availableTriggerId: z.string(),
     triggerMetadata: z.any().optional(),
