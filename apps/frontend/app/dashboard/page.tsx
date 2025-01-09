@@ -6,6 +6,8 @@ import { useEffect, useState } from "react";
 import { BACKEND_URL, HOOKS_URL } from "@/app/config";
 import { LinkButton } from "@/components/buttons/LinkButton";
 import { useRouter } from "next/navigation";
+import { toast } from "react-toastify";
+
 
 interface Zap {
   id: string;
@@ -34,33 +36,67 @@ interface Zap {
   };
 }
 
+interface ApiResponse {
+  zaps: Zap[];
+}
+
 function useZaps() {
   const [loading, setLoading] = useState(true);
   const [zaps, setZaps] = useState<Zap[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    axios
-      .get(`${BACKEND_URL}/api/v1/zap`, {
-        headers: {
-          Authorization: localStorage.getItem("token"),
-        },
-      })
-      .then((res) => {
-        console.log(res.data);
-        setZaps(res.data.zaps);
+    const controller = new AbortController();
+    const fetchZaps = async () => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          throw new Error("Authorization token is missing");
+        }
+
+        const response = await axios.get<ApiResponse>(`${BACKEND_URL}/api/v1/zap`, {
+          headers: {
+            Authorization: token,
+          },
+          signal: controller.signal,
+        });
+
+        setZaps(response.data.zaps);
+      } catch (err) {
+        if (axios.isCancel(err)) {
+          console.log("Request canceled");
+        } else {
+          setError(err instanceof Error ? err.message : "An error occurred");
+        }
+      } finally {
         setLoading(false);
-      });
+      }
+    };
+
+    fetchZaps();
+
+    return () => {
+      controller.abort(); // Cleanup: cancel request on component unmount
+    };
   }, []);
 
   return {
     loading,
     zaps,
+    error,
   };
 }
 
 export default function () {
-  const { loading, zaps } = useZaps();
+  const { loading, zaps ,error} = useZaps();
   const router = useRouter();
+  useEffect(() => {
+    toast.error(error)
+  }, [error])
+  
   return (
     <div>
       <Appbar />
@@ -161,14 +197,14 @@ function ZapTable({ zaps }: { zaps: Zap[] }) {
                 <td className="p-4 text-center">
                   <div className="text-wrap max-w-[200px]">{z.id}</div>
                 </td>
-                <td className="p-4 text-nowrap text-center">JAN 01, 2025</td>
+                <td className="p-4 text-nowrap text-center">Jan 01, 2025</td>
                 <td className="p-4 w-1/3">
                   <div className="text-wrap text-center">{`${HOOKS_URL}/hooks/catch/${z.userId}/${z.id}`}</div>
                 </td>
                 <td className="p-2 text-center">
                   <LinkButton
                     onClick={() => {
-                      router.push("/zap/" + z.id);
+                      // router.push("/zap/" + z.id);
                     }}
                   >
                     Go

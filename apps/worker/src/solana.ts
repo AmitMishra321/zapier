@@ -9,7 +9,7 @@ import {
 } from "@solana/web3.js";
 
 const connection = new Connection(
-  "https://api.mainnet-beta.solana.com",
+  "https://api.devnet.solana.com",
   "finalized"
 );
 

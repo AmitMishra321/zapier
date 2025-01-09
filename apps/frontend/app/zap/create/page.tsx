@@ -1,40 +1,122 @@
 "use client";
-import { useEffect, useState } from "react";
+import { ReactElement, useCallback, useEffect, useState } from "react";
+import {
+  Background,
+  Controls,
+  MiniMap,
+  ReactFlow,
+  addEdge,
+  useNodesState,
+  useEdgesState,
+  type OnConnect,
+  BackgroundVariant,
+} from "@xyflow/react";
+import type {
+  Connection,
+  Edge,
+  EdgeTypes,
+  OnEdgesChange,
+  OnNodesChange,
+} from "@xyflow/react";
+import type { Node, NodeTypes, BuiltInNode } from "@xyflow/react";
+import { Handle, Position, type NodeProps } from "@xyflow/react";
+
 import { Appbar } from "@/components/Appbar";
+import CustomNode from "@/components/CustomNode";
+interface Action {
+  availableActionId: string;
+  availableActionName: string;
+}
+import "@xyflow/react/dist/style.css";
 import { ZapCell } from "@/components/ZapCell";
-import { SecondaryButton } from "@/components/buttons/SecondaryButton";
-import axios from "axios";
-import { BACKEND_URL } from "@/app/config";
 import { useRouter } from "next/navigation";
+import { BACKEND_URL } from "@/app/config";
+import axios from "axios";
 import { DarkButton } from "@/components/buttons/DarkButton";
+import { SecondaryButton } from "@/components/buttons/SecondaryButton";
 import { Input } from "@/components/Input";
+import { toast } from "react-toastify";
+
+export type AppNode = BuiltInNode | Node;
+export const initialNodes: AppNode[] = [];
+
+export const nodeTypes: NodeTypes = {
+  custom: CustomNode,
+} satisfies NodeTypes;
+
+export const initialEdges: Edge[] = [];
+export const edgeTypes = {
+  // Add your custom edge types here!
+} satisfies EdgeTypes;
+
 
 type EndPoint = "trigger" | "action";
-
-function useAvailableItems(endpoint: EndPoint) {
-  const [items, setItems] = useState([]);
-
-  useEffect(() => {
-    const responseKey =
-      endpoint === "trigger" ? "availableTriggers" : "availableActions";
-
-    axios
-      .get(`${BACKEND_URL}/api/v1/${endpoint}/available`, {
-        headers: {
-          Authorization: localStorage.getItem("token"),
-        },
-      })
-      .then((res) => setItems(res.data[responseKey]))
-      .catch((error) => console.error(`Error fetching ${endpoint}:`, error));
-  }, [endpoint]);
-
-  return items;
+interface Trigger {
+  id: string;
+  name: string;
+  image: string;
 }
 
-export default function () {
+interface Action {
+  id: string;
+  name: string;
+  image: string;
+}
+
+type AvailableItem = Trigger | Action;
+
+function useAvailableItems(endpoint: EndPoint) {
+  const [items, setItems] = useState<AvailableItem[]>([]);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    const fetchItems = async () => {
+      setError(null);
+
+      const responseKey =
+        endpoint === "trigger" ? "availableTriggers" : "availableActions";
+
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          throw new Error("Authorization token is missing");
+        }
+
+        const response = await axios.get(`${BACKEND_URL}/api/v1/${endpoint}/available`, {
+          headers: {
+            Authorization: token,
+          },
+          signal: controller.signal,
+        });
+
+        setItems(response.data[responseKey] || []);
+      } catch (err) {
+        if (axios.isCancel(err)) {
+          console.log(`Request for ${endpoint} canceled.`);
+        } else {
+          setError(err instanceof Error ? err.message : "An error occurred");
+        }
+      }
+    };
+
+    fetchItems();
+
+    return () => {
+      controller.abort();
+    };
+  }, [endpoint]);
+
+  console.log(error)
+
+  return { items };
+}
+
+
+const WorkflowPage: React.FC = () => {
   const router = useRouter();
-  const availableTriggers = useAvailableItems("trigger");
-  const availableActions = useAvailableItems("action");
+  const { items: availableTriggers } = useAvailableItems("trigger");
+  const { items: availableActions } = useAvailableItems("action");
   const [selectedTrigger, setSelectedTrigger] = useState<{
     id: string;
     name: string;
@@ -82,40 +164,62 @@ export default function () {
     }
   };
 
-  return (
-    <div>
-      <div className="">
-        <Appbar />
-      </div>
+  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
 
-      <div className="bg-slate-200 w-full relative">
-        {/* added publish button */}
-        <div className="w-fit h-fit absolute top-0 right-0 p-4">
-          <DarkButton size="big" onClick={handlePublish}>Publish</DarkButton>
-        </div>
-
-        <div className="w-full min-h-screen bg-slate-200 flex flex-col justify-center gap-4">
-          <div className=" flex justify-center items-center">
-            <ZapCell
-              onClick={() => setSelectedModalIndex(1)}
-              image={selectedTrigger?.image}
-              name={selectedTrigger?.name || "Trigger"}
-              index={1}
-            />
-          </div>
-          <div className=" flex justify-center items-center flex-col gap-4">
-            {selectedActions.map((action, index) => (
-              <ZapCell
-                key={index}
-                onClick={() => setSelectedModalIndex(action.index)}
-                image={action?.image}
-                name={action.availableActionName || "Action"}
-                index={action.index}
-              />
-            ))}
-          </div>
-          <div className="flex justify-center items-center">
-            <SecondaryButton
+  const initializeNodes = () => {
+    const X = 250; // Horizontal position
+    const paddingTop = 50; // Padding from the top
+    const nodeHeight = 120; // Distance between nodes
+  
+    // Trigger Node
+    const triggerNode: Node = {
+      id: "1",
+      type: "custom",
+      position: { x: X, y: paddingTop },
+      data: {
+        label: (
+          <ZapCell
+            onClick={() => setSelectedModalIndex(1)}
+            image={selectedTrigger?.image}
+            name={selectedTrigger?.name || "Trigger"}
+            index={1}
+          />
+        ),
+      },
+    };
+  
+    // Action Nodes
+    const actionNodes: Node[] = selectedActions.map((action, index) => ({
+      id: `${index + 2}`,
+      type: "custom",
+      position: { x: X, y: paddingTop + (index + 1) * nodeHeight },
+      data: {
+        label: (
+          <ZapCell
+            key={index}
+            onClick={() => setSelectedModalIndex(action.index)}
+            image={action?.image}
+            name={action.availableActionName || "Action"}
+            index={action.index}
+          />
+        ),
+      },
+    }));
+  
+    // Add Action Button Node
+    const addActionButtonNode: Node = {
+      id: "add-action-button",
+      type: "custom",
+      position: {
+        x: X + 132,
+        y: paddingTop + (selectedActions.length + 1) * nodeHeight,
+      },
+      data: {
+        label: (
+          <div className="custom-node w-full flex justify-center items-center">
+            <Handle type="target" position={Position.Top} id="target" />
+            <button
               onClick={() => {
                 setSelectedActions((a) => [
                   ...a,
@@ -128,11 +232,83 @@ export default function () {
                 ]);
               }}
             >
-              <div className="w-fit">➕</div>
-            </SecondaryButton>
+              <div className="w-14 p-1 bg-slate-300 rounded-md">➕</div>
+            </button>
+            <Handle type="source" position={Position.Bottom} id="source" />
           </div>
+        ),
+      },
+    };
+  
+    const newEdges: Edge[] = actionNodes.map((node, index) => ({
+      id: `edge-${index + 1}`,
+      source: index === 0 ? "1" : `${index + 1}`,
+      target: node.id,
+      animated: true,
+    }));
+
+    const addBtnEdges: Edge[] = [
+      {
+        id: `edge-add-btn`,
+        source: `${selectedActions.length + 1}`,
+        target: "add-action-button",
+        animated: true,
+      },
+    ];
+
+    setNodes([triggerNode, ...actionNodes, addActionButtonNode]);
+    setEdges([...newEdges, ...addBtnEdges]);
+  };
+
+  const onConnect = useCallback(
+    (connection: Connection) => {
+      setEdges((eds) => addEdge(connection, eds));
+    },
+    [setEdges]
+  );
+
+  useEffect(() => {
+    initializeNodes();
+  }, [selectedTrigger, selectedActions]);
+
+  return (
+    <div className="w-full min-h-screen">
+      <Appbar />
+      <div className="bg-slate-200 w-full relative">
+        {/* added publish button */}
+        <div className="w-fit h-fit absolute top-0 right-0 p-2">
+          <DarkButton size="big" onClick={handlePublish}>
+            Publish
+          </DarkButton>
         </div>
-        {selectedModalIndex && (
+        <div className="bg-slate-700 flex justify-center w-full">
+          <div style={{ width: "50%", height: "90vh" }} className="bg-slate-700">
+            <ReactFlow
+              nodes={nodes}
+              edges={edges}
+              nodeTypes={nodeTypes}
+              onNodesChange={onNodesChange}
+              onEdgesChange={onEdgesChange}
+              onConnect={onConnect}
+              fitView={false}
+              defaultViewport={{ x: 0, y: 0, zoom: 0.8 }}
+              fitViewOptions={{
+                padding: 0,
+                includeHiddenNodes: false,
+                minZoom: 0.1,
+                maxZoom: 0.5,
+              }}
+              defaultEdgeOptions={{
+                animated: true,
+                style: { stroke: "#666", strokeWidth: 2 },
+              }}
+              style={{}}
+            >
+              <Background color="#000" lineWidth={.2} variant={BackgroundVariant.Cross} />
+              <Controls />
+            </ReactFlow>
+          </div>
+          {selectedModalIndex && (
           <Modal
             availableItems={
               selectedModalIndex === 1 ? availableTriggers : availableActions
@@ -173,10 +349,16 @@ export default function () {
             index={selectedModalIndex}
           />
         )}
+        </div>
       </div>
     </div>
   );
-}
+};
+
+export default WorkflowPage;
+
+
+
 
 function Modal({
   index,
