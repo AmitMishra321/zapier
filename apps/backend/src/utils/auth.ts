@@ -1,20 +1,15 @@
 import "dotenv/config";
-import crypto from "crypto";
+import bcrypt from "bcrypt";
+import crypto from "crypto"
 import { addMinutes } from "date-fns";
 import { sendEmail } from "./email";
 import prisma from "@repo/db/client";
 
-/* Signup User Function */
+const SALT_ROUNDS = 10; // For bcrypt salting
 
-export async function signUpUser(
-  email: string,
-  name: string,
-  password: string
-) {
-  const hashedPassword = crypto
-    .createHash("sha256")
-    .update(password)
-    .digest("hex");
+/* Signup User Function */
+export async function signUpUser(email: string, name: string, password: string) {
+  const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
 
   const user = await prisma.user.create({
     data: {
@@ -36,15 +31,14 @@ export async function signUpUser(
   });
 
   const verificationUrl = `${process.env.APP_URL}/signup/verify?id=${user.id}&token=${token}`;
-  const verificationUrlText = `Verify your email by clicking here: ${verificationUrl}`
-  const subject = `Signup Verification`
-  await sendEmail(email, subject ,verificationUrlText);
+  const verificationUrlText = `Verify your email by clicking here: ${verificationUrl}`;
+  const subject = `Signup Verification`;
+  await sendEmail(email, subject, verificationUrlText);
 
   return { message: "Verification email sent." };
 }
 
 /* Verify Email Function */
-
 export async function verifyEmail(token: string) {
   const verificationRecord = await prisma.verificationToken.findUnique({
     where: { token },
@@ -74,11 +68,10 @@ export type UserTypes = {
   name: string;
   password: string;
   verified: boolean;
-}
-/* Resend Email Function */
+};
 
-export async function ResendEmail (user: UserTypes) {
-  
+/* Resend Email Function */
+export async function ResendEmail(user: UserTypes) {
   const token = crypto.randomBytes(32).toString("hex");
   const expiresAt = addMinutes(new Date(), 15); // Token valid for 15 minutes
 
@@ -91,18 +84,15 @@ export async function ResendEmail (user: UserTypes) {
   });
 
   const verificationUrl = `${process.env.APP_URL}/signup/verify?id=${user.id}&token=${token}`;
-  const verificationUrlText = `Verify your email by clicking here: ${verificationUrl}`
-  const subject = `Signup Verification`
-  await sendEmail(user.email, subject ,verificationUrlText);
+  const verificationUrlText = `Verify your email by clicking here: ${verificationUrl}`;
+  const subject = `Signup Verification`;
+  await sendEmail(user.email, subject, verificationUrlText);
 
   return { message: "Verification email sent." };
 }
 
-
 /* Forget Password Function */
-
-export async function ForgetPassword (user: UserTypes) {
-  
+export async function ForgetPassword(user: UserTypes) {
   const token = crypto.randomBytes(32).toString("hex");
   const expiresAt = addMinutes(new Date(), 15); // Token valid for 15 minutes
 
@@ -115,17 +105,15 @@ export async function ForgetPassword (user: UserTypes) {
   });
 
   const verificationUrl = `${process.env.APP_URL}/forget/reset/?id=${user.id}&token=${token}`;
-  const verificationUrlText = `Reset password by clicking here: ${verificationUrl}`
-  const subject = `Forget Password`
-  await sendEmail(user.email, subject ,verificationUrlText);
+  const verificationUrlText = `Reset password by clicking here: ${verificationUrl}`;
+  const subject = `Forget Password`;
+  await sendEmail(user.email, subject, verificationUrlText);
 
   return { message: "Verification email sent." };
 }
 
-
 /* Verify Forget Password Function */
-
-export async function VerifyForgetPassword(token: string,password:string) {
+export async function VerifyForgetPassword(token: string, password: string) {
   const verificationRecord = await prisma.verificationToken.findUnique({
     where: { token },
     include: { user: true },
@@ -134,11 +122,12 @@ export async function VerifyForgetPassword(token: string,password:string) {
   if (!verificationRecord || verificationRecord.expiresAt < new Date()) {
     throw new Error("Invalid or expired token.");
   }
-  const hashedPassword = crypto.createHash("sha256").update(password).digest("hex");
-  
+
+  const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
+
   const res = await prisma.user.update({
     where: { id: verificationRecord.userId },
-    data: { password:hashedPassword },
+    data: { password: hashedPassword },
   });
 
   await prisma.verificationToken.delete({
@@ -148,12 +137,8 @@ export async function VerifyForgetPassword(token: string,password:string) {
   return { message: "Password Updated successfully." };
 }
 
-
 /* Login User Function */
-
 export async function loginUser(email: string, password: string) {
-  const hashedPassword = crypto.createHash("sha256").update(password).digest("hex");
-
   try {
     const user = await prisma.user.findUnique({
       where: { email },
@@ -165,7 +150,9 @@ export async function loginUser(email: string, password: string) {
       throw error;
     }
 
-    if (user.password !== hashedPassword) {
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+
+    if (!isPasswordValid) {
       const error = new Error("Invalid email or password.");
       (error as any).statusCode = 401;
       throw error;
@@ -186,4 +173,3 @@ export async function loginUser(email: string, password: string) {
     throw error;
   }
 }
-
