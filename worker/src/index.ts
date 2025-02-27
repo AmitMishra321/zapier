@@ -24,7 +24,7 @@ async function main() {
         offset: message.offset,
         value: message.value?.toString(),
       });
-        await new Promise((r) => setTimeout(r, 5000));
+        await new Promise((r) => setTimeout(r, 500));
         console.log('Processing done')
       await consumer.commitOffsets([
         {
