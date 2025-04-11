@@ -29,8 +29,8 @@ export default function LoginPage() {
         localStorage.setItem("token", res.data.token);
         router.push("/dashboard");
       }
-    } catch (error:any) {
-      toast.error(error.response.data.message)
+    } catch (error: any) {
+      toast.error(error.response.data.message);
       if (axios.isAxiosError(error) && error.response) {
         setVerifyMsg(error.response.data.message || "Login failed.");
       } else {
@@ -75,13 +75,10 @@ export default function LoginPage() {
               placeholder="Password"
             />
             <div className="cursor-pointer select-none text-sky-700 flex justify-end">
-                <p onClick={()=> router.push("/forget")}>forget password ?</p>
+              <p onClick={() => router.push("/forget")}>forget password ?</p>
             </div>
             <div className="pt-6">
-              <PrimaryButton
-                onClick={handleLoginBtn}
-                size="big"
-              >
+              <PrimaryButton onClick={handleLoginBtn} size="big">
                 {isLoading ? "Logging in..." : "Login"}
               </PrimaryButton>
             </div>
@@ -91,16 +88,3 @@ export default function LoginPage() {
     </div>
   );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-

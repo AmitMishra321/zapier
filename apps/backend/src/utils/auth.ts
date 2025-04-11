@@ -1,14 +1,19 @@
 import "dotenv/config";
 import bcrypt from "bcrypt";
-import crypto from "crypto"
+import crypto from "crypto";
 import { addMinutes } from "date-fns";
 import { sendEmail } from "./email";
-import prisma from "@repo/db/client";
+import prisma from "../../../../packages/db/src";
+// import prisma from "@repo/db/client";
 
 const SALT_ROUNDS = 10; // For bcrypt salting
 
 /* Signup User Function */
-export async function signUpUser(email: string, name: string, password: string) {
+export async function signUpUser(
+  email: string,
+  name: string,
+  password: string,
+) {
   const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
 
   const user = await prisma.user.create({
@@ -61,7 +66,7 @@ export async function verifyEmail(token: string) {
   return { verified: res.verified, message: "Email verified successfully." };
 }
 
-// Type for User 
+// Type for User
 export type UserTypes = {
   id: number;
   email: string;
@@ -159,7 +164,9 @@ export async function loginUser(email: string, password: string) {
     }
 
     if (!user.verified) {
-      const error = new Error("Email not verified. Please verify your email before logging in.");
+      const error = new Error(
+        "Email not verified. Please verify your email before logging in.",
+      );
       (error as any).statusCode = 403;
       throw error;
     }

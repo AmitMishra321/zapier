@@ -5,7 +5,7 @@ import { JWT_PASSWORD } from "./config";
 export function authMiddleware(
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) {
   const token = req.headers.authorization;
   if (!token) {
@@ -22,7 +22,7 @@ export function authMiddleware(
       next();
     } else {
       throw new Error(
-        "Token payload does not contain the required 'id' field."
+        "Token payload does not contain the required 'id' field.",
       );
     }
   } catch (error) {

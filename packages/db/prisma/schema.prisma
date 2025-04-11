@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -18,9 +12,9 @@ model User {
   email              String              @unique
   name               String
   password           String
-  zaps               Zap[]
   verified           Boolean             @default(false)
   verificationTokens VerificationToken[]
+  zaps               Zap[]
 }
 
 model VerificationToken {
@@ -33,21 +27,21 @@ model VerificationToken {
 
 model Zap {
   id        String   @id @default(uuid())
-  trigger   Trigger?
   triggerId String
-  actions   Action[]
-  zapRuns   ZapRun[]
   userId    Int
+  actions   Action[]
+  trigger   Trigger?
   user      User     @relation(fields: [userId], references: [id])
+  zapRuns   ZapRun[]
 }
 
 model Trigger {
   id        String           @id @default(uuid())
-  zap       Zap              @relation(fields: [zapId], references: [id])
   zapId     String           @unique
   metadata  Json             @default("{}")
-  type      AvailableTrigger @relation(fields: [triggerId], references: [id])
   triggerId String
+  type      AvailableTrigger @relation(fields: [triggerId], references: [id])
+  zap       Zap              @relation(fields: [zapId], references: [id])
 }
 
 model AvailableTrigger {
@@ -60,11 +54,11 @@ model AvailableTrigger {
 model Action {
   id           String          @id @default(uuid())
   zapId        String
-  zap          Zap             @relation(fields: [zapId], references: [id])
   actionId     String
-  type         AvailableAction @relation(fields: [actionId], references: [id])
   metadata     Json            @default("{}")
   sortingOrder Int             @default(0)
+  type         AvailableAction @relation(fields: [actionId], references: [id])
+  zap          Zap             @relation(fields: [zapId], references: [id])
 }
 
 model AvailableAction {
@@ -77,8 +71,8 @@ model AvailableAction {
 model ZapRun {
   id           String        @id @default(uuid())
   zapId        String
-  zap          Zap           @relation(fields: [zapId], references: [id])
   metadata     Json
+  zap          Zap           @relation(fields: [zapId], references: [id])
   zapRunOutbox ZapRunOutbox?
 }
 

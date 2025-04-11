@@ -1,10 +1,11 @@
-import 'dotenv/config';
+import "dotenv/config";
 import { JsonObject } from "@prisma/client/runtime/library";
-import prisma from "@repo/db/client";
+// import prisma from "@repo/db/client";
 import { Kafka } from "kafkajs";
 import { parse } from "./parse";
 import { sendEmail } from "./email";
-import { sendSol } from './solana';
+import { sendSol } from "./solana";
+import prisma from "../../../packages/db/src";
 
 const TOPIC_NAME = "zap-events";
 const kafka = new Kafka({
@@ -53,24 +54,36 @@ async function Main() {
       });
 
       const currentAction = zapRunDetails?.zap.actions.find(
-        (x) => x.sortingOrder === stage
+        (x) => x.sortingOrder === stage,
       );
 
       if (!currentAction) {
         console.log("current action not found");
         return;
       }
-      
-      const zapRunMetadata = zapRunDetails?.metadata
+
+      const zapRunMetadata = zapRunDetails?.metadata;
       if (currentAction.type.id === "email") {
-        const body = parse((currentAction.metadata as JsonObject)?.body as string , zapRunMetadata)
-        const email = parse((currentAction.metadata as JsonObject)?.email as string , zapRunMetadata)
+        const body = parse(
+          (currentAction.metadata as JsonObject)?.body as string,
+          zapRunMetadata,
+        );
+        const email = parse(
+          (currentAction.metadata as JsonObject)?.email as string,
+          zapRunMetadata,
+        );
         console.log(`Sending out an email to ${email} body is ${body}`);
-        await sendEmail(email,body)
+        await sendEmail(email, body);
       }
       if (currentAction.type.id === "sol") {
-        const amount = parse((currentAction.metadata as JsonObject)?.amount as string , zapRunMetadata)
-        const address = parse((currentAction.metadata as JsonObject)?.address as string , zapRunMetadata)
+        const amount = parse(
+          (currentAction.metadata as JsonObject)?.amount as string,
+          zapRunMetadata,
+        );
+        const address = parse(
+          (currentAction.metadata as JsonObject)?.address as string,
+          zapRunMetadata,
+        );
         console.log(`Sending out Sol of ${amount} to address ${address}`);
         await sendSol(address, amount);
       }
@@ -78,16 +91,18 @@ async function Main() {
       await new Promise((r) => setTimeout(r, 500));
 
       const lastStage = (zapRunDetails?.zap.actions.length || 1) - 1;
-      if(lastStage !== stage){
+      if (lastStage !== stage) {
         await producer.send({
           topic: TOPIC_NAME,
-          messages: [{
-            value: JSON.stringify({
-              stage: stage + 1,
-              zapRunId,
-            })
-          }]
-        })
+          messages: [
+            {
+              value: JSON.stringify({
+                stage: stage + 1,
+                zapRunId,
+              }),
+            },
+          ],
+        });
       }
 
       console.log("processing done");

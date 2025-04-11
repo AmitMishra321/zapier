@@ -24,7 +24,9 @@ export default function VerifyEmail() {
 
     if (token) {
       axios
-        .get(`${BACKEND_URL}/api/v1/user/verify-email?id=${u_id}&token=${token}`)
+        .get(
+          `${BACKEND_URL}/api/v1/user/verify-email?id=${u_id}&token=${token}`,
+        )
         .then((res) => {
           if (res.data.verified) {
             toast.success("Your email has been successfully verified!");
@@ -46,7 +48,7 @@ export default function VerifyEmail() {
     if (reEmail.token && reEmail.id) {
       try {
         const res = await axios.get(
-          `${BACKEND_URL}/api/v1/user/resend-email-verification?id=${reEmail.id}&token=${reEmail.token}`
+          `${BACKEND_URL}/api/v1/user/resend-email-verification?id=${reEmail.id}&token=${reEmail.token}`,
         );
         toast.success(res.data.message);
       } catch (error) {

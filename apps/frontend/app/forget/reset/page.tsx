@@ -20,10 +20,10 @@ export default function VerifyEmail() {
     try {
       const res = await axios.post(
         `${BACKEND_URL}/api/v1/user/reset-password`,
-        { token, id: u_id, password }
+        { token, id: u_id, password },
       );
       toast.success(res.data.message);
-      router.push("/login")
+      router.push("/login");
     } catch (error) {
       toast.error("Failed to forget password. Please try again.");
       console.error("Error updating password:", error);

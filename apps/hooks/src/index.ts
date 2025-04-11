@@ -1,6 +1,7 @@
 import express from "express";
+import prisma from "../../../packages/db/src";
 const app = express();
-import prisma from "@repo/db/client";
+// import prisma from "@repo/db/client";
 
 app.use(express.json());
 
@@ -25,8 +26,8 @@ app.post("/hooks/catch/:userId/:zapId", async (req, res) => {
       },
     });
     res.json({
-      message: "Webhook received"
-    })
+      message: "Webhook received",
+    });
   });
 });
 

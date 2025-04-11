@@ -1,7 +1,8 @@
 import express, { Request, Response, Router } from "express";
 import { authMiddleware } from "../middleware";
 import { ZapCreateSchema } from "../types";
-import prisma from "@repo/db/client";
+import prisma from "../../../../packages/db/src";
+// import prisma from "@repo/db/client";
 const router: Router = express.Router();
 
 router.post("/", authMiddleware, async (req: Request, res: Response) => {

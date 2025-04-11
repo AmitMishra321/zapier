@@ -8,15 +8,12 @@ import {
   Connection,
 } from "@solana/web3.js";
 
-const connection = new Connection(
-  "https://api.devnet.solana.com",
-  "finalized"
-);
+const connection = new Connection("https://api.devnet.solana.com", "finalized");
 
 export async function sendSol(to: string, amount: string) {
   const { default: base58 } = await import("bs58");
   const keypair = Keypair.fromSecretKey(
-    base58.decode(process.env.SOL_PRIVATE_KEY ?? "")
+    base58.decode(process.env.SOL_PRIVATE_KEY ?? ""),
   );
   console.log(keypair.publicKey);
   const transferTransaction = new Transaction().add(
@@ -24,7 +21,7 @@ export async function sendSol(to: string, amount: string) {
       fromPubkey: keypair.publicKey,
       toPubkey: new PublicKey(to),
       lamports: parseFloat(amount) * LAMPORTS_PER_SOL,
-    })
+    }),
   );
 
   await sendAndConfirmTransaction(connection, transferTransaction, [keypair]);

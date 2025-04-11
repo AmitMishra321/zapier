@@ -1,15 +1,15 @@
-import prisma from "@repo/db/client";
+// import prisma from "@repo/db/client";
 import express, { Router } from "express";
 import { authMiddleware } from "../middleware";
+import prisma from "../../../../packages/db/src";
 const router: Router = express.Router();
-
 
 router.get("/available", authMiddleware, async (req, res) => {
   try {
-    const availableTriggers = await prisma.availableTrigger.findMany({})
-     
+    const availableTriggers = await prisma.availableTrigger.findMany({});
+
     res.status(200).json({
-      availableTriggers
+      availableTriggers,
     });
   } catch (error: any) {
     console.error("Server Error:", error);

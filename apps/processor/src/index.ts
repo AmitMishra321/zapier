@@ -1,5 +1,6 @@
-import prisma from "@repo/db/client";
+// import prisma from "@repo/db/client";
 import { Kafka } from "kafkajs";
+import prisma from "../../../packages/db/src";
 
 const TOPIC_NAME = "zap-events";
 const kafka = new Kafka({
@@ -25,13 +26,13 @@ async function Main() {
     });
 
     await prisma.zapRunOutbox.deleteMany({
-        where:{
-            id:{
-                in: pendingRows.map(x => x.id)
-            }
-        }
-    })
-    await new Promise(r => setTimeout(r, 10000));
+      where: {
+        id: {
+          in: pendingRows.map((x) => x.id),
+        },
+      },
+    });
+    await new Promise((r) => setTimeout(r, 10000));
   }
 }
 

@@ -1,8 +1,13 @@
 import "dotenv/config";
 import express, { Request, Response, Router } from "express";
 const router: Router = express.Router();
-import { EmailSchema, ForgetPasswordSchema, SigninSchema, SignupSchema } from "../types";
-import prisma from "@repo/db/client";
+import {
+  EmailSchema,
+  ForgetPasswordSchema,
+  SigninSchema,
+  SignupSchema,
+} from "../types";
+// import prisma from "@repo/db/client";
 import jwt from "jsonwebtoken";
 import { JWT_PASSWORD } from "../config";
 import { authMiddleware } from "../middleware";
@@ -15,6 +20,7 @@ import {
   ForgetPassword,
   VerifyForgetPassword,
 } from "../utils/auth";
+import prisma from "../../../../packages/db/src";
 
 router.post("/signup", async (req, res) => {
   try {
@@ -151,7 +157,7 @@ router.post("/reset-password", async (req, res) => {
     }
     const response = await VerifyForgetPassword(
       token as string,
-      password as string
+      password as string,
     );
     res.json(response);
   } catch (error: any) {

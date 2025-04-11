@@ -1,4 +1,4 @@
-import 'dotenv/config';
+import "dotenv/config";
 import nodemailer from "nodemailer";
 
 const transport = nodemailer.createTransport({
@@ -11,7 +11,7 @@ const transport = nodemailer.createTransport({
   },
 });
 
-export async function sendEmail(to: string, sub:string, text: string) {
+export async function sendEmail(to: string, sub: string, text: string) {
   const mailOptions = {
     from: `"Deepak's Zapier" < ${process.env.SMTP_EMAIL} >`,
     to,

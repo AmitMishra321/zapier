@@ -49,7 +49,6 @@ export const edgeTypes = {
   // Add your custom edge types here!
 } satisfies EdgeTypes;
 
-
 type EndPoint = "trigger" | "action";
 interface Trigger {
   id: string;
@@ -83,12 +82,15 @@ function useAvailableItems(endpoint: EndPoint) {
           throw new Error("Authorization token is missing");
         }
 
-        const response = await axios.get(`${BACKEND_URL}/api/v1/${endpoint}/available`, {
-          headers: {
-            Authorization: token,
+        const response = await axios.get(
+          `${BACKEND_URL}/api/v1/${endpoint}/available`,
+          {
+            headers: {
+              Authorization: token,
+            },
+            signal: controller.signal,
           },
-          signal: controller.signal,
-        });
+        );
 
         setItems(response.data[responseKey] || []);
       } catch (err) {
@@ -107,11 +109,10 @@ function useAvailableItems(endpoint: EndPoint) {
     };
   }, [endpoint]);
 
-  console.log(error)
+  console.log(error);
 
   return { items };
 }
-
 
 const WorkflowPage: React.FC = () => {
   const router = useRouter();
@@ -132,7 +133,7 @@ const WorkflowPage: React.FC = () => {
     }[]
   >([]);
   const [selectedModalIndex, setSelectedModalIndex] = useState<number | null>(
-    null
+    null,
   );
 
   const handlePublish = async () => {
@@ -155,7 +156,7 @@ const WorkflowPage: React.FC = () => {
           headers: {
             Authorization: localStorage.getItem("token"),
           },
-        }
+        },
       );
 
       router.push("/dashboard");
@@ -171,7 +172,7 @@ const WorkflowPage: React.FC = () => {
     const X = 250; // Horizontal position
     const paddingTop = 50; // Padding from the top
     const nodeHeight = 120; // Distance between nodes
-  
+
     // Trigger Node
     const triggerNode: Node = {
       id: "1",
@@ -188,7 +189,7 @@ const WorkflowPage: React.FC = () => {
         ),
       },
     };
-  
+
     // Action Nodes
     const actionNodes: Node[] = selectedActions.map((action, index) => ({
       id: `${index + 2}`,
@@ -206,7 +207,7 @@ const WorkflowPage: React.FC = () => {
         ),
       },
     }));
-  
+
     // Add Action Button Node
     const addActionButtonNode: Node = {
       id: "add-action-button",
@@ -239,7 +240,7 @@ const WorkflowPage: React.FC = () => {
         ),
       },
     };
-  
+
     const newEdges: Edge[] = actionNodes.map((node, index) => ({
       id: `edge-${index + 1}`,
       source: index === 0 ? "1" : `${index + 1}`,
@@ -264,7 +265,7 @@ const WorkflowPage: React.FC = () => {
     (connection: Connection) => {
       setEdges((eds) => addEdge(connection, eds));
     },
-    [setEdges]
+    [setEdges],
   );
 
   useEffect(() => {
@@ -282,7 +283,10 @@ const WorkflowPage: React.FC = () => {
           </DarkButton>
         </div>
         <div className="bg-slate-700 flex justify-center w-full">
-          <div style={{ width: "50%", height: "90vh" }} className="bg-slate-700">
+          <div
+            style={{ width: "50%", height: "90vh" }}
+            className="bg-slate-700"
+          >
             <ReactFlow
               nodes={nodes}
               edges={edges}
@@ -304,51 +308,55 @@ const WorkflowPage: React.FC = () => {
               }}
               style={{}}
             >
-              <Background color="#000" lineWidth={.2} variant={BackgroundVariant.Cross} />
+              <Background
+                color="#000"
+                lineWidth={0.2}
+                variant={BackgroundVariant.Cross}
+              />
               <Controls />
             </ReactFlow>
           </div>
           {selectedModalIndex && (
-          <Modal
-            availableItems={
-              selectedModalIndex === 1 ? availableTriggers : availableActions
-            }
-            onSelect={(
-              props: null | {
-                id: string;
-                name: string;
-                image?: string;
-                metadata: any;
+            <Modal
+              availableItems={
+                selectedModalIndex === 1 ? availableTriggers : availableActions
               }
-            ) => {
-              if (props === null) {
-                setSelectedModalIndex(null);
-                return;
-              }
-              if (selectedModalIndex === 1) {
-                setSelectedTrigger({
-                  id: props.id,
-                  name: props.name,
-                  image: props.image,
-                });
-              } else {
-                setSelectedActions((a) => {
-                  let newActions = [...a];
-                  newActions[selectedModalIndex - 2] = {
-                    index: selectedModalIndex,
+              onSelect={(
+                props: null | {
+                  id: string;
+                  name: string;
+                  image?: string;
+                  metadata: any;
+                },
+              ) => {
+                if (props === null) {
+                  setSelectedModalIndex(null);
+                  return;
+                }
+                if (selectedModalIndex === 1) {
+                  setSelectedTrigger({
+                    id: props.id,
+                    name: props.name,
                     image: props.image,
-                    availableActionId: props.id,
-                    availableActionName: props.name,
-                    metadata: props.metadata,
-                  };
-                  return newActions;
-                });
-              }
-              setSelectedModalIndex(null);
-            }}
-            index={selectedModalIndex}
-          />
-        )}
+                  });
+                } else {
+                  setSelectedActions((a) => {
+                    let newActions = [...a];
+                    newActions[selectedModalIndex - 2] = {
+                      index: selectedModalIndex,
+                      image: props.image,
+                      availableActionId: props.id,
+                      availableActionName: props.name,
+                      metadata: props.metadata,
+                    };
+                    return newActions;
+                  });
+                }
+                setSelectedModalIndex(null);
+              }}
+              index={selectedModalIndex}
+            />
+          )}
         </div>
       </div>
     </div>
@@ -357,9 +365,6 @@ const WorkflowPage: React.FC = () => {
 
 export default WorkflowPage;
 
-
-
-
 function Modal({
   index,
   onSelect,
@@ -367,7 +372,7 @@ function Modal({
 }: {
   index: number;
   onSelect: (
-    props: null | { id: string; name: string; image?: string; metadata: any }
+    props: null | { id: string; name: string; image?: string; metadata: any },
   ) => void;
   availableItems: { id: string; name: string; image: string }[];
 }) {
@@ -394,8 +399,20 @@ function Modal({
               className="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center"
               data-modal-hide="default-modal"
             >
-              <svg className="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
-                <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+              <svg
+                className="w-3 h-3"
+                aria-hidden="true"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 14 14"
+              >
+                <path
+                  stroke="currentColor"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+                />
               </svg>
               <span className="sr-only">Close modal</span>
             </button>

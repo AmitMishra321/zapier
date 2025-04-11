@@ -5,11 +5,11 @@ import { HeroVideo } from "@/components/HeroVideo";
 export default function Home() {
   return (
     <main className="pb-12">
-        <Appbar />
-        <Hero />
-        <div className="pt-8">
-          <HeroVideo />
-        </div>
+      <Appbar />
+      <Hero />
+      <div className="pt-8">
+        <HeroVideo />
+      </div>
     </main>
   );
 }
